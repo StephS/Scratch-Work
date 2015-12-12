@@ -189,9 +189,10 @@ translate([-29.822299+6-0.25,11.1,0])
 
 translate([0.002,-2+9.4,14.065])
 rotate([90,0,0])
-rotate([0,0,180])
+
 hotend_jhead();
-translate([0.002,-2+9.8-1,27.998+10])
-rotate([90+90,0,0])
-translate([0,(13-3),0])
+//translate([0.002,-2+9.8+3,27.998+6])
+//rotate([90+90,0,0])
+//rotate([-45,0,0])
+translate([0,(13-3),-10])
 cooling_fan();

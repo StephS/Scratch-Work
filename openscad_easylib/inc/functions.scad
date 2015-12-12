@@ -49,7 +49,7 @@ module cylinder_slot(r=0, r1, r2, h, length=0, center=false, fn=0) {
 	union() {
 		rotate([0,0, 180/n]) cylinder_poly(h=h, r=r, r1=r1, r2=r2, center=center, fn=n);
 		if (length>0) {
-			translate([((center) ? length/2 : 0),((center) ? 0 : -((r>0) ? r : r1)*cos(180/n)), 0]) trapezoid(cube=[length, ((r>0) ? r*2 : r1*2) *cos(180/n),h], y1=(r1-r2)*cos(180/n), y2=(r1-r2)*cos(180/n), center=center);
+			//translate([((center) ? length/2 : 0),((center) ? 0 : -((r>0) ? r : r1)*cos(180/n)), 0]) trapezoid(cube=[length, ((r>0) ? r*2 : r1*2) *cos(180/n),h], y1=(r1-r2)*cos(180/n), y2=(r1-r2)*cos(180/n), center=center);
 			//cube([length, dia*cos(180/n),h]);
 			translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder_poly(h=h, r=r, r1=r1, r2=r2, center=center, fn=n);
 		}

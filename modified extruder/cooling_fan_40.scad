@@ -31,10 +31,10 @@ cube_fillet(size=[41,41,3], radius=-1, vertical=[4,4,4,4], top=[0,0,0,0], bottom
 fan_dia=38;
 top_dim_x=15;
 top_dim_y=4;
-top_offset=37;
+top_offset=20-3;
 myoffset=1.4;
 //fan_height=34.5;
-fan_height=17.5;
+fan_height=46-0.25;
 base_duct_height=5;
 
 hole_separation=32;
@@ -51,7 +51,7 @@ difference() {
         difference() {
 hull() {
 translate([-top_dim_x/2,top_offset,fan_height])
-rotate([-45,0,0])
+//rotate([-45,0,0])
 cube_fillet(size=[top_dim_x,top_dim_y,2], radius=-1, vertical=[0,0,0,0], top=[0,0,0,0], bottom=[0,0,0,0], center=false, vertical_fn=[0,0,0,0], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]);
 translate([0,41/2,0])
     // base duct
@@ -76,9 +76,9 @@ cube_fillet(size=[16, 13, 10], radius=-1, vertical=[0,0,0,0], top=[4,0,4,0], bot
 }
 difference() {
 render() hull() {
-translate([-(top_dim_x-myoffset)/2,top_offset+myoffset/2,fan_height-0.2])
-rotate([-45,0,0])
-#cube_fillet(size=[top_dim_x-myoffset,top_dim_y-myoffset,2], radius=-1, vertical=[0,0,0,0], top=[0,0,0,0], bottom=[0,0,0,0], center=false, vertical_fn=[0,0,0,0], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]);
+translate([-(top_dim_x-myoffset)/2,top_offset+myoffset/2,fan_height+0.1])
+//rotate([-45,0,0])
+#cube_fillet(size=[top_dim_x-myoffset,top_dim_y-myoffset,2+0.1], radius=-1, vertical=[0,0,0,0], top=[0,0,0,0], bottom=[0,0,0,0], center=false, vertical_fn=[0,0,0,0], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]);
 translate([0,(41)/2,0])
         cylinder(d=41-myoffset*2, h=base_duct_height-myoffset, $fn=100);
    
@@ -116,11 +116,19 @@ rotate([0,0,90])
 screw_obj_hole(mountscrew_obj);
 //mount cutout
 translate([0,-6,11/2])
-cube([11,10,11], center=true);
+cube([11,12,11], center=true);
 translate([0,-6,11/2])
-rotate([-45,0,0])
+rotate([-26,0,0])
 cube([11,10,20], center=true);
 }
 }
 
+difference() {
 cooling_fan();
+    translate([0,top_offset+top_dim_y,fan_height+10/2+3])
+    rotate([-45,0,0])
+#cube([30,30,10], center=true);
+    translate([0,top_offset+top_dim_y,fan_height+10/2+1.5])
+    rotate([-45/2,0,0])
+#cube([30,30,10], center=true);
+}
