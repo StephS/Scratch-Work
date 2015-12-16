@@ -149,7 +149,7 @@ echo("filament idler hole dia", idler_obj_outer_dia(filament_idler_hole_obj));
 echo("hobb bolt idler hole dia", idler_obj_outer_dia(hobbed_bolt_bearing_hole_obj));
 
 // the size of the mounting plate (oriented with the rest of the extruder)
-motor_screws=screw_obj(screw=screw_M3_socket_head, height=mounting_plate_size[2]);
+motor_screws=screw_obj(screw=screw_M3_socket_head, height=motor_plate_size[2]);
 
 my_motor=motor_obj(motor=motor_nema17, screw_objects=[motor_screws, -1, motor_screws, motor_screws], name="nema 17 motor");
 // the screw object for the mounting plate (TODO: change to m3 after new carriage is designed)
@@ -191,11 +191,11 @@ module extruder_body() {
             difference() {
                 union() {
             motor_plate(motor_object = my_motor, size=motor_plate_size, offset=[0,0], vertical_fillet=[0,0,0,0], slot_angles=[0, 0, 0, 0], flange_slot_length = 0, shadow=true, $fn=0);
-            cylinder(h=mounting_plate_size[2]-2.5, d=32);
+            cylinder(h=mounting_plate_size[2], d=32);
                 }
                 // cutout for filament guide and idler
                 translate([-42,0,0])
-                cube([42,42,mounting_plate_size[2]]);
+                cube([42,42,motor_plate_size[2]]);
             }
             // rounded part for filament guide
             translate([0,(drive_gear_diameter+4)/2,mounting_plate_size[2]/2])
@@ -214,39 +214,32 @@ module extruder_body() {
         }
         
         // cutout for motor flange thingy
-       translate([0,42/2,mounting_plate_size[2]-2.5])
-       cylinder_poly(r=hole_fit(motor_flange_diameter(motor_obj_motor(my_motor))+conf_motor_flange_padding,$fn)/2,h=3, center = false);
+       //translate([0,42/2,mounting_plate_size[2]-2.5])
+       //cylinder_poly(r=hole_fit(motor_flange_diameter(motor_obj_motor(my_motor))+conf_motor_flange_padding,$fn)/2,h=3, center = false);
         
         
         translate([0,42/2,0]) {
             // cutout for drive gear    
-            cylinder_poly(h=mounting_plate_size[2]-2.5, r=(drive_gear_diameter+4)/2);
+            cylinder_poly(h=motor_plate_size[2], r=(drive_gear_diameter+4)/2);
             
             
             // cutout for idler
             //translate([-filament_center_location-idler_hole_dia/2,0,0]) {
             translate([-filament_center_location-idler_outer_dia/2,0,0]) {
                 hull() {
-            cylinder_poly(r=(idler_hole_dia/2+1), h=mounting_plate_size[2], center=false);
+            cylinder_poly(r=(idler_hole_dia/2+1), h=motor_plate_size[2], center=false);
                 translate([0,-(idler_hole_dia/2+1),0])
                 rotate([0,0,90])
-            cube([(idler_hole_dia/2+1)*2,(idler_hole_dia/2+1), mounting_plate_size[2]]);
+            cube([(idler_hole_dia/2+1)*2,(idler_hole_dia/2+1), motor_plate_size[2]]);
                 }
             }
             
             // cutout for idler hinge
             translate([-15.5+(idler_hinge_diameter+1)/2,-15.5-(idler_hinge_diameter+1)/2,3])
             rotate([0,0,90])
-            cube_fillet([idler_hinge_diameter+1+8,idler_hinge_diameter+2+1,mounting_plate_size[2]-idler_hinge_support_thickness], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
-            //#cylinder_poly(r=idler_hinge_diameter/2+1, h=mounting_plate_size[2]-3, center=false);
+            cube_fillet([idler_hinge_diameter+1+8,idler_hinge_diameter+2+1,motor_plate_size[2]+0.01-idler_hinge_support_thickness], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
+
             // cutout for idler hinge movement
-            /*
-            translate([-42/2, -15.5-(idler_hinge_diameter)/2, 0])
-            difference() {
-                cube([idler_hinge_diameter+2,idler_hinge_diameter+2,idler_hinge_support_thickness]);    
-                cube_fillet([idler_hinge_diameter+2,idler_hinge_diameter+2,idler_hinge_support_thickness], vertical=[0,(idler_hinge_diameter+2)/2,0,0],center=false);
-            }
-            */
             translate([-42/2, -42/2+42/2-15.5+0.5, 0])
             difference() {
                 cube([42/2-15.5,42/2-15.5,idler_hinge_support_thickness]);    
@@ -424,8 +417,8 @@ module hotend_mount_hole(hotend_height_array, mount_width, groove_width, slot_le
     }
 }
 
-hinge_screw=screw_obj(screw=screw_M3_socket_head, height=mounting_plate_size[2], head_drop=washer_thickness(v_washer_hole(washer_M3)), washer=washer_M3);
-idler_screw=screw_obj(screw=screw_M4_socket_head, height=mounting_plate_size[2], head_drop=screw_head_height(screw_M4_socket_head)+0.2, hole_support=true);
+hinge_screw=screw_obj(screw=screw_M3_socket_head, height=motor_plate_size[2], head_drop=washer_thickness(v_washer_hole(washer_M3)), washer=washer_M3);
+idler_screw=screw_obj(screw=screw_M4_socket_head, height=motor_plate_size[2], head_drop=screw_head_height(screw_M4_socket_head)+2.4, hole_support=true);
 
 somevar=(21-15.5);
 hinge_screw_x=somevar;
@@ -439,7 +432,7 @@ module idler() {
             translate([0,idler_hinge_diameter/2,0])
                 cube_fillet([somevar+idler_hinge_diameter/2,42-somevar,mounting_plate_size[2]], vertical=[0,0,0,0],center=false);
                 translate([hinge_screw_x, hinge_screw_y, 0])
-                cylinder_poly(r=idler_hinge_diameter/2, h=mounting_plate_size[2], center=false);
+                cylinder_poly(r=idler_hinge_diameter/2, h=motor_plate_size[2], center=false);
         }
             translate([0, idler_hinge_diameter/2+(42-somevar)-0.01, 0])
                 //resize([(somevar+idler_hinge_diameter/2)/2,0,0])
@@ -447,19 +440,16 @@ module idler() {
         //cylinder_poly(r=(somevar+idler_hinge_diameter/2)/2, h=mounting_plate_size[2], center=false);
             // idler cylinder block
             translate([-filament_center_location-idler_outer_dia/2+42/2,hinge_screw_y-somevar+42/2,0])
-            cylinder_poly(r=idler_outer_dia/2-1, h=mounting_plate_size[2], center=false);
+            cylinder_poly(r=idler_outer_dia/2-1, h=motor_plate_size[2]-2.4, center=false);
             
         }
-        // cutout for motor flange thing
-        translate([42/2, hinge_screw_y-somevar+42/2, mounting_plate_size[2]-2.5])
-            cylinder_poly(r=hole_fit(motor_flange_diameter(motor_obj_motor(my_motor))+conf_motor_flange_padding,$fn)/2,h=3, center = false);
         // cutout for hinge support
         cube([somevar+idler_hinge_diameter/2, idler_hinge_diameter+3, idler_hinge_support_thickness+0.1]);
         // hinge screw
         translate([hinge_screw_x, hinge_screw_y, 0]) {
             translate([0, 0, idler_hinge_support_thickness])
                 screw_obj_hole(hinge_screw);
-            translate([0, 0, mounting_plate_size[2]])
+            translate([0, 0, motor_plate_size[2]])
                 rotate([180,0,0])
                 screw_obj_hole(hinge_screw);
         }
@@ -467,7 +457,7 @@ module idler() {
         translate([-filament_center_location-idler_outer_dia/2+42/2,hinge_screw_y-somevar+42/2,0]) {
             translate([0,0,mounting_plate_size[2]/2])
         idler_obj_hole(idler_object=filament_idler_obj ,center=true);
-            translate([0,0,mounting_plate_size[2]+0.001])
+            translate([0,0,motor_plate_size[2]+0.001])
             rotate([180,0,0])
             screw_obj_hole(idler_screw);
         }
