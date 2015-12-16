@@ -152,6 +152,13 @@ clamp_offset_y=-1;
 spring_screw_y_offset=5.5;
 
 idler_hinge_diameter=8;
+idler_hinge_support_thickness=3;
+
+groove_mount_clamp_x=mounting_plate_size[0]-filament_center_location*2;
+groove_mount_clamp_z=3;
+groove_mount_clamp_y=jhead_mount_height_array[0]+jhead_mount_height_array[1];
+idler_hole_dia=idler_obj_outer_dia(idler_obj_tolerance(filament_idler_obj));
+idler_outer_dia=idler_obj_outer_dia(filament_idler_obj);
 
 module extruder_body() {
     difference() {
@@ -188,7 +195,7 @@ module extruder_body() {
         translate([0,42/2,0]) {
             // cutout for drive gear    
             cylinder_poly(h=mounting_plate_size[2]-2.5, r=(drive_gear_diameter+4)/2);
-            idler_hole_dia=idler_obj_outer_dia(idler_obj_tolerance(filament_idler_obj));
+            
             
             // cutout for idler
             translate([-filament_center_location-idler_hole_dia/2,0,0]) {
@@ -201,10 +208,12 @@ module extruder_body() {
             // cutout for idler hinge
             translate([-15.5+(idler_hinge_diameter+1)/2,-15.5-(idler_hinge_diameter+1)/2,3])
             rotate([0,0,90])
-            cube_fillet([idler_hinge_diameter+1+8,idler_hinge_diameter+1+8,mounting_plate_size[2]-3], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
+            cube_fillet([idler_hinge_diameter+1+8,idler_hinge_diameter+1+8,mounting_plate_size[2]-idler_hinge_support_thickness], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
             //#cylinder_poly(r=idler_hinge_diameter/2+1, h=mounting_plate_size[2]-3, center=false);
         }
         
+        translate([-filament_center_location,clamp_offset_y-groove_mount_clamp_y/2,0-groove_mount_clamp_z/2+mounting_plate_size[2]])
+            cube([groove_mount_clamp_x,groove_mount_clamp_y,groove_mount_clamp_z], center=true);
         // cutout mount for extruder
         translate([-filament_center_location,clamp_offset_y,0])
     //rotate([0,180,0])
@@ -274,4 +283,28 @@ module hotend_mount_hole(hotend_height_array, mount_width, groove_width, slot_le
     }
 }
 
+hinge_screw=screw_obj(screw=screw_M3_socket_head, height=mounting_plate_size[2], washer=washer_M3);
+
+somevar=(21-15.5);
+hinge_screw_x=somevar;
+hinge_screw_y=idler_hinge_diameter/2;
+module idler() {
+    difference() {
+        union() {
+            cube_fillet([somevar+idler_hinge_diameter/2,42-somevar+idler_hinge_diameter/2,mounting_plate_size[2]], vertical=[0,0,0,(idler_hinge_diameter)/2],center=false);
+            // idler block
+            translate([-filament_center_location-idler_hole_dia/2+42/2,hinge_screw_y-somevar+42/2,0])
+            cylinder_poly(r=idler_outer_dia/2, h=mounting_plate_size[2], center=false);
+            
+        }
+        // cutout for hinge support
+        cube([somevar+idler_hinge_diameter/2, idler_hinge_diameter+3, idler_hinge_support_thickness+0.1]);
+        // hinge screw
+        translate([hinge_screw_x, hinge_screw_y, idler_hinge_support_thickness])
+        screw_obj_hole(hinge_screw);
+    }
+}
+
 extruder_body();
+translate([-42/2, somevar-idler_hinge_diameter/2, 0])
+idler();
