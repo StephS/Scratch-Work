@@ -67,7 +67,7 @@ my_hotend_array=jhead_mount_height_array;
 */
 
 // don't use washers on the idler to save on part count
-filament_idler_obj = idler_obj(bearing=set_bearing_tolerance(bearing_624, tolerance_dia=1), screw_object=-1, washer=washer_M4, name=-1);
+filament_idler_obj = idler_obj(bearing=set_bearing_tolerance(bearing_624ZZ, tolerance_dia=1), screw_object=-1, washer=washer_M4, name=-1);
 filament_idler_hole_obj = idler_obj_tolerance(filament_idler_obj);
 
 idler_spring_nut_slot=2;
@@ -218,17 +218,17 @@ module extruder_body() {
             cylinder_poly(r=(idler_hole_dia/2+1), h=motor_plate_size[2], center=false);
                 translate([0,-(idler_hole_dia/2+1),0])
                 rotate([0,0,90])
-            cube([(idler_hole_dia/2+1)*2,(idler_hole_dia/2+1), motor_plate_size[2]]);
+            cube([(idler_hole_dia/2+1)*2,42/2-filament_center_location-idler_outer_dia/2, motor_plate_size[2]]);
                 }
             }
             
             // cutout for idler hinge
             translate([-15.5+(idler_hinge_diameter+1)/2,-15.5-(idler_hinge_diameter+1)/2,3])
             rotate([0,0,90])
-            cube_fillet([idler_hinge_diameter+1+8,idler_hinge_diameter+2+1,motor_plate_size[2]+0.01-idler_hinge_support_thickness], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
+            cube_fillet([idler_hinge_diameter/2+1+motor_plate_size[1]/2-(42/2-15.5),idler_hinge_diameter+2+1,motor_plate_size[2]+0.01-idler_hinge_support_thickness], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
 
             // cutout for idler hinge movement
-            translate([-42/2, -42/2+42/2-15.5+0.5, 0])
+            translate([-42/2, -idler_hole_dia+1/2+0.1/2, 0])
             difference() {
                 cube([42/2-15.5,42/2-15.5,idler_hinge_support_thickness]);    
                 cube_fillet([42/2-15.5,42/2-15.5,idler_hinge_support_thickness], vertical=[0,42/2-15.5,0,0],center=false);
@@ -439,7 +439,7 @@ module idler() {
             
         }
         // cutout for hinge support
-        cube([somevar+idler_hinge_diameter/2, idler_hinge_diameter+3, idler_hinge_support_thickness+0.1]);
+        cube([somevar+idler_hinge_diameter/2, idler_hinge_diameter+4.5, idler_hinge_support_thickness+0.1]);
         // hinge screw
         translate([hinge_screw_x, hinge_screw_y, 0]) {
             translate([0, 0, idler_hinge_support_thickness])
