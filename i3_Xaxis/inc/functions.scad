@@ -98,3 +98,10 @@ module cube_fillet(size, radius=-1, vertical=[3,3,3,3], top=[0,0,0,0], bottom=[0
         cube(size, center);
     }
 }
+
+module _cube(size, center) {
+    mycenter=(len(center)==undef) ? [center, center, center] : center;
+    mysize=(len(size)==undef) ? [size, size, size] : size;
+    translate([(mycenter[0]) ? -mysize[0]/2 : 0, (mycenter[1]) ? -mysize[1]/2 : 0, (mycenter[2]) ? -mysize[2]/2 : 0])
+        cube(size=mysize, center=false);
+}

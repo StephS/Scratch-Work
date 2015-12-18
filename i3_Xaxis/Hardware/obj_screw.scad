@@ -32,6 +32,7 @@ function screw_obj_screw_head_top_dia(type) = ((screw_obj_washer(type)==-1) ?
                              screw_head_top_dia(screw_obj_screw(type))));
 
 function screw_obj_nut_dia(type) = nut_outer_dia(screw_obj_nut(type));
+function screw_obj_nut_flat(type) = nut_flat(screw_obj_nut(type));
 
 function screw_obj_nut_thickness(type) = nut_thickness(screw_obj_nut(type));
 

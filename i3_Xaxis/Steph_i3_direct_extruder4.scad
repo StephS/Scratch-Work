@@ -225,13 +225,13 @@ module extruder_body() {
             // cutout for idler hinge
             translate([-15.5+(idler_hinge_diameter+1)/2,-15.5-(idler_hinge_diameter+1)/2,idler_hinge_support_thickness])
             rotate([0,0,90])
-            cube_fillet([idler_hinge_diameter/2+1+motor_plate_size[1]/2-(42/2-15.5),idler_hinge_diameter+2+1,motor_plate_size[2]+0.01-idler_hinge_support_thickness], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
+            cube_fillet([idler_hinge_diameter/2+1+motor_plate_size[1]/2-(42/2-15.5),idler_hinge_diameter+2+1,motor_plate_size[2]-idler_hinge_support_thickness-motor_z_offset], vertical=[0,0,(idler_hinge_diameter+1)/2,0],center=false);
 
             // cutout for idler hinge movement
             translate([-42/2, -idler_hole_dia+1/2+0.1/2, 0])
             difference() {
-                cube([42/2-15.5,42/2-15.5,idler_hinge_support_thickness]);    
-                cube_fillet([42/2-15.5,42/2-15.5,idler_hinge_support_thickness], vertical=[0,42/2-15.5,0,0],center=false);
+                cube([42/2-15.5,42/2-15.5,motor_plate_size[2]+0.01]);    
+                cube_fillet([42/2-15.5,42/2-15.5,motor_plate_size[2]+0.01], vertical=[0,42/2-15.5,0,0],center=false);
             }
         }
         // fan hinge screw hole
@@ -255,6 +255,13 @@ module extruder_body() {
     // support for fan hinge
     translate([-42/2-(clamp_size[2])/2-0.3,-clamp_size[2]/2-1-0.1,((mounting_plate_size[2]-fan_mount_width)/2-0.2)/2])
             cube_fillet([clamp_size[2]-0.3, clamp_size[2], (mounting_plate_size[2]-fan_mount_width)/2-0.2], center=true, vertical=[0,clamp_size[2]/2,clamp_size[2]/2,0]);
+    
+    
+   // support for hinge 
+    translate([-15.5+(idler_hinge_diameter+1)/2-0.8,-15.5-(idler_hinge_diameter+1)/2+42/2+0.8,idler_hinge_support_thickness+0.2])
+            rotate([0,0,90])
+            cube_fillet([idler_hinge_diameter/2+0.5+motor_plate_size[1]/2-(42/2-15.5)-(idler_hole_dia/2+1)-0.8,idler_hinge_diameter+2-0.8,motor_plate_size[2]-idler_hinge_support_thickness-motor_z_offset-0.4], vertical=[42/2-15.5,0,(idler_hinge_diameter+1)/2,0],center=false);
+    
 }
 
 //rotate([0,0,-90])
@@ -426,17 +433,16 @@ module idler() {
             //cube_fillet([somevar+idler_hinge_diameter/2,42-somevar+idler_hinge_diameter/2,mounting_plate_size[2]], vertical=[0,0,0,(idler_hinge_diameter)/2],center=false);
             hull() {
             translate([0,idler_hinge_diameter/2,0])
-                cube_fillet([somevar+idler_hinge_diameter/2,42-somevar,mounting_plate_size[2]], vertical=[0,0,0,0],center=false);
+                cube_fillet([somevar+idler_hinge_diameter/2,42-somevar,mounting_plate_size[2]-0.1], vertical=[0,0,0,0],center=false);
                 translate([hinge_screw_x, hinge_screw_y, 0])
-                cylinder_poly(r=idler_hinge_diameter/2, h=motor_plate_size[2]-0.1, center=false);
-        }
+                cylinder_poly(r=idler_hinge_diameter/2, h=mounting_plate_size[2]-0.1, center=false);
+            }
+            // thingy for opening idler
             translate([0, idler_hinge_diameter/2+(42-somevar)-0.01, 0])
-                //resize([(somevar+idler_hinge_diameter/2)/2,0,0])
-                  cube_fillet([(somevar+idler_hinge_diameter/2)/2,somevar+idler_hinge_diameter/2+0.01,mounting_plate_size[2]], vertical=[(somevar+idler_hinge_diameter/2)/2-1,0,0,0],center=false);  
-        //cylinder_poly(r=(somevar+idler_hinge_diameter/2)/2, h=mounting_plate_size[2], center=false);
+                  cube_fillet([(somevar+idler_hinge_diameter/2)/2,somevar+idler_hinge_diameter/2+0.01,mounting_plate_size[2]-0.1], vertical=[(somevar+idler_hinge_diameter/2)/2-1,0,0,0],center=false);  
             // idler cylinder block
             translate([-filament_center_location-idler_outer_dia/2+42/2,hinge_screw_y-somevar+42/2,0])
-            cylinder_poly(r=idler_outer_dia/2-1, h=motor_plate_size[2]-motor_z_offset, center=false);
+            cylinder_poly(r=idler_outer_dia/2-1, h=mounting_plate_size[2]-0.1, center=false);
             
         }
         // cutout for hinge support
@@ -445,7 +451,7 @@ module idler() {
         translate([hinge_screw_x, hinge_screw_y, 0]) {
             translate([0, 0, idler_hinge_support_thickness])
                 screw_obj_hole(hinge_screw);
-            translate([0, 0, motor_plate_size[2]])
+            translate([0, 0, mounting_plate_size[2]])
                 rotate([180,0,0])
                 screw_obj_hole(hinge_screw);
         }
@@ -491,17 +497,19 @@ module hotend_clamp() {
     }
 }
 
+/*
 translate([-filament_center_location, -1-clamp_size[2]-0.1, mounting_plate_size[2]])
 rotate([-90,0,0])
 hotend_clamp();
+*/
 
 //hotend_clamp();
 
 
 extruder_body();
 
-translate([-42/2, somevar-idler_hinge_diameter/2, 0])
-idler();
+//translate([-42/2, somevar-idler_hinge_diameter/2, 0])
+//idler();
 
 
 // for printing
