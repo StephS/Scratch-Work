@@ -262,8 +262,9 @@ module idler_hole() {
 
 module filament_hole() {
     rotate([90,0,0])
-        rotate([0,0, 180/16]) 
-            cylinder(d=hole_fit(filament_dia,16), h=motor_plate_size[1], center=false, $fn=16);
+        rotate([0,0, 180/16])
+            translate([0,0,-0.01])
+            cylinder(d=hole_fit(filament_dia,16), h=motor_plate_size[1]+0.02, center=false, $fn=16);
 }
 
 module hubb_idler_shadow() {
