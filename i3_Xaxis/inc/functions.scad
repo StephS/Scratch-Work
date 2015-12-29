@@ -43,17 +43,20 @@ function hole_fit_poly( dia=0) = dia/cos(180/poly_sides(dia));
 // This determines the number of sides of a hole that is printable
 // I added +1 because nobody wants to print a triangle. (plus it looks nicer, havn't tested printability yet.)
 // made it return an even number of sides. it works better for operations like hull
-function poly_sides(d) = (ceil((max(round(2 * d),3)+1)/2)*2);
+function poly_sides(d) = (ceil((max(round(2 * d),3)+1)/4)*4);
+
+function poly_sides_helper(fn=0, d) = ((d==undef) ? 0 : ((fn>0) ? fn : poly_sides(d)));
 
 // Based on nophead research
-module polyhole(d, d1, d2, h, center=false, $fn=0) {
-    n = max((($fn>0) ? $fn : poly_sides(d)), (($fn>0) ? $fn : poly_sides(d1)), (($fn>0) ? $fn : poly_sides(d2)));
+module polyhole(d, d1, d2, h, center=false, fn=0) {
+    n = max(poly_sides_helper(fn, d), poly_sides_helper(fn, d1), poly_sides_helper(fn, d2));
+    echo(n);
     cylinder(h = h, d = d, d1 = d1, d2 = d2, $fn = n, center=center);
 }
 
 // make it interchangeable between this and cylinder
 module cylinder_poly(r, r1, r2, h, center=false, fn=0){
-    polyhole(d=r*2, d1=r1*2, d2=r2*2, h=h, center=center, $fn = fn);
+    polyhole(d=r*2, d1=r1*2, d2=r2*2, h=h, center=center, fn = fn);
 }
 
 //

@@ -50,6 +50,8 @@ motor_screw_to_edge=motor_plate_size[0]/2-motor_screw_xy[0];
 motor_screws=screw_obj(screw=screw_M3_socket_head, height=motor_plate_size[2]);
 my_motor=motor_obj(motor=motor_nema17, screw_objects=[motor_screws, -1, motor_screws, motor_screws], name="nema 17 motor");
 
+echo("Motor Mounting screw length=", (motor_plate_size[2] +4));
+
 // diameter of the hobbed gear
 // MK8 is 9mm with 1mm deep hobb
 hobb_gear_diameter=9;
@@ -158,7 +160,7 @@ carriage_screw_obj = screw_obj(screw=screw_M4_socket_head, washer=washer_M4, nut
 // locations of the mounting holes for the I3 Rework
 carriage_hole_locations=[[11.5, 11.5], [-11.5, 11.5], [11.5, -11.5], [-11.5, -11.5]];
 carriage_motor_gap=1;
-carriage_mount_offset=5;
+carriage_mount_offset=15;
 
 //groove_mount_clamp_x=mounting_plate_size[0]-filament_center_location*2;
 //groove_mount_clamp_z=3;
@@ -177,7 +179,7 @@ module extruder_body() {
             // *** motor support cylinders ***
             translate([motor_screw_xy[0], motor_screw_xy[1], 0])
                 //rotate([0,0,90])
-                cylinder_poly(r=motor_screw_to_edge ,h=motor_plate_size[2]);
+                cylinder_poly(r=motor_screw_to_edge, h=motor_plate_size[2]);
             //translate([-motor_screw_xy[0], motor_screw_xy[1], 0])
             //    cylinder_poly(r=motor_screw_to_edge ,h=motor_plate_size[2]);
             translate([motor_screw_xy[0], -motor_screw_xy[1], 0]) {
@@ -369,7 +371,10 @@ module fan_flange() {
 
 module groove_mount_body() {
     translate([0, -groove_body_y_size, 0])
-    _cube([groove_body_x_size, groove_body_y_size+0.01, groove_body_z_size], center=[true, false, false]);
+        _cube([groove_body_x_size, groove_body_y_size+0.01, groove_body_z_size], center=[true, false, false]);
+    // support bracket
+    translate([groove_body_x_size/2, -groove_body_y_size, 0])
+        _cube([motor_plate_size[0]/2-(groove_body_x_size/2-filament_x_loc)+carriage_motor_gap+0.01, 3, groove_body_z_size], center=[false, false, false]);
     translate([0, -groove_body_offset_y, 0])
     _cube([groove_body_x_size, groove_body_offset_y+0.01, motor_plate_size[2]], center=[true, false, false]);
 }
@@ -412,7 +417,8 @@ module groove_mount_clamp_screw_holes() {
 }
 
 module groove_mount_hole() {
-    
+    mybevel=0.3;
+    small_hole_fn=poly_sides((hotend_mount_array[1][0]/2+hotend_mount_tolerance)*2);
     // filament hole
     rotate([-90,0,0])
     rotate([0,0, 180/16])
@@ -426,7 +432,12 @@ module groove_mount_hole() {
                 translate([0,-(hotend_mount_array[0][0]+hotend_mount_tolerance*2),0])
                     _cube([hotend_mount_array[0][0]+hotend_mount_tolerance*2, hotend_mount_array[0][0]+hotend_mount_tolerance*2, hotend_mount_array[0][1]+0.2], center=[true, false, false]);
             }
-            cylinder_poly(r=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=hotend_mount_array[1][1]);
+            // for rounding the corners for an easier fit
+            cylinder_poly(r1=hotend_mount_array[1][0]/2+hotend_mount_tolerance+mybevel, r2=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=mybevel*2, fn=small_hole_fn);
+            translate([0,0,hotend_mount_array[1][1]-mybevel*2])
+            cylinder_poly(r2=hotend_mount_array[1][0]/2+hotend_mount_tolerance+mybevel, r1=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=mybevel*2, fn=small_hole_fn);
+            // actual cut
+            cylinder_poly(r=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=hotend_mount_array[1][1], fn=small_hole_fn);
             translate([0,-(hotend_mount_array[1][0]+hotend_mount_tolerance*2),0])
                     _cube([hotend_mount_array[1][0]+hotend_mount_tolerance*2, hotend_mount_array[1][0]+hotend_mount_tolerance*2, hotend_mount_array[1][1]+0.2], center=[true, false, false]);
         }
@@ -538,8 +549,8 @@ module carriage_mount_body() {
             cube(carriage_plate_size);
             translate([0,carriage_plate_size[1],0])
                 cube_fillet([carriage_plate_size[0],carriage_plate_size[0],motor_plate_size[2]] ,vertical=[carriage_plate_size[0],0,0,0], vertical_fn=[1,0,0,0]);
-            translate([-carriage_motor_gap-0.01, carriage_plate_size[1]/2-carriage_mount_offset+carriage_plate_size[0]/2+1, 0])
-                cube([carriage_motor_gap+0.02, carriage_plate_size[1]/2+carriage_plate_size[0]-1, motor_plate_size[2]]);
+            translate([-carriage_motor_gap-0.01, carriage_plate_size[1]/2+carriage_mount_offset-carriage_plate_size[0]/2+1, 0])
+                cube([carriage_motor_gap+0.02, motor_plate_size[1]/2+carriage_plate_size[0]-carriage_mount_offset, motor_plate_size[2]]);
         }
 }
     
