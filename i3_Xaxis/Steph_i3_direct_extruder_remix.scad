@@ -12,6 +12,8 @@ include <Hardware/func_motors.scad>;
 // hotend mount dimensions
 //[[top_dia, top_thickness], [bottom_dia, bottom_thickness]]
 e3d_mount_array=[[16, 3.7], [12,6]];
+//specifically for the e3d v6
+e3d_collet_array=[8, 2.6];
 // array starts from top (entrance) to bottom, with the thickness of the tip, groove, and bottom. Add these together for the total cutout height.
 e3d_hotend_height=62;
 
@@ -21,6 +23,7 @@ jhead_mount_array=[[15.9,4.76], [12,4.64]];
 
 hotend_mount_tolerance=0.1;
 hotend_mount_array=e3d_mount_array;
+hotend_use_e3d=true;
 
 hotend_mount_thickness=hotend_mount_array[0][1]+hotend_mount_array[1][1];
 
@@ -51,6 +54,8 @@ motor_screws=screw_obj(screw=screw_M3_socket_head, height=motor_plate_size[2]);
 my_motor=motor_obj(motor=motor_nema17, screw_objects=[motor_screws, -1, motor_screws, motor_screws], name="nema 17 motor");
 
 echo("Motor Mounting screw length=", (motor_plate_size[2] +4));
+
+
 
 // diameter of the hobbed gear
 // MK8 is 9mm with 1mm deep hobb
@@ -83,15 +88,19 @@ hobb_gear_hole_dia=hobb_gear_diameter+idler_tolerance;
 
 // filament diameter
 filament_dia=1.9;
+filament_real_dia=1.75;
 
 // filament z location (center)
 filament_z_loc=hotend_mount_array[0][0]/2+body_base_thickness;
-filament_x_loc=hobb_gear_diameter/2-hobb_gear_hobb_depth+filament_dia/2;
+filament_x_loc=hobb_gear_diameter/2-hobb_gear_hobb_depth+filament_real_dia/2;
+echo("filament x",filament_x_loc);
+echo("filament z",filament_z_loc);
 // additional thickness for filiment guide support (-x)
-filament_guide_thickness=2;
+// set to 2 if not using ptfe on e3d
+filament_guide_thickness=3;
 
 // center of idler location
-idler_x_loc=filament_x_loc+0.7+idler_outer_dia/2;
+idler_x_loc=filament_x_loc+filament_real_dia/2+idler_outer_dia/2-0.1;
 idler_z_loc=filament_z_loc;
 //distance from the center of the idler to the edge of the plate
 idler_center_to_edge=motor_plate_size[0]/2-idler_x_loc;
@@ -135,7 +144,7 @@ groove_clamp_screw_obj = screw_obj(screw=screw_M3_socket_head, washer=washer_M3,
 groove_clamp_hole_separation=16+screw_obj_screw_dia(groove_clamp_screw_obj)+2;
 
 // offset of clamp from the motor plate
-groove_body_offset_y=1;
+groove_body_offset_y=3;
 // length of the groove mount body
 groove_body_y_size=hotend_mount_thickness+groove_body_offset_y;
 // width of the clamp
@@ -156,20 +165,16 @@ mounting_gap=1;
 // the size of the mounting plate (oriented with the rest of the extruder)
 carriage_plate_size=[10,34,34];
 // the screw object for the mounting plate (TODO: change to m3 after new carriage is designed)
-carriage_screw_obj = screw_obj(screw=screw_M4_socket_head, washer=washer_M4, nut=nut_M4, height=16, horizontal=true);
+carriage_screw_obj = screw_obj(screw=screw_M4_socket_head, washer=washer_M4, nut=nut_M4, height=11, horizontal=true);
 // locations of the mounting holes for the I3 Rework
 carriage_hole_locations=[[11.5, 11.5], [-11.5, 11.5], [11.5, -11.5], [-11.5, -11.5]];
 carriage_motor_gap=1;
-carriage_mount_offset=15;
+carriage_mount_offset=18;
 
-//groove_mount_clamp_x=mounting_plate_size[0]-filament_center_location*2;
-//groove_mount_clamp_z=3;
-//groove_mount_clamp_y=my_hotend_array[0]+my_hotend_array[1];
-
-// motor flange z offset=2.2
-
-
-//fan_mount_size=[groove_clamp_length,fan_mount_width,groove_clamp_length];
+// additional stuff for e3d hotend ptfe tubing
+// set length=motor_plate_size[1]/2+groove_body_offset_y+0.02 if you only want ptfe on the bottom
+e3d_ptfe_dia=hole_fit( dia=4, fn=16);
+e3d_ptfe_length=motor_plate_size[1]+groove_body_offset_y+0.02;
 
 hinge_corner_thing=motor_plate_size[0]/2-(groove_body_x_size/2+filament_x_loc);
 
@@ -267,6 +272,44 @@ module extruder() {
     }
 }
 
+module bare_extruder() {
+    difference() {
+        union() {
+            extruder_body();
+            translate([-filament_x_loc, -motor_plate_size[1]/2, 0]) {
+                // base
+                translate([0, -groove_body_offset_y, 0])
+                _cube([groove_body_x_size, groove_body_offset_y+0.01, motor_plate_size[2]], center=[true, false, false]);
+            }
+            //translate([motor_plate_size[0]/2+carriage_motor_gap, -carriage_plate_size[1]-carriage_mount_offset, 0])
+            //carriage_mount_body();
+            //translate([-filament_x_loc-groove_body_x_size/2-fan_flange_radius, groove_mount_hole_y_offset+hotend_mount_thickness/2, filament_z_loc])
+                //fan_flange();
+        }
+        //translate([motor_plate_size[0]/2+carriage_motor_gap, -carriage_plate_size[1]-carriage_mount_offset, 0])
+            //carriage_mount_holes();
+        
+        hobb_and_motor_flange_hole();
+        translate([-idler_x_loc,0,0])
+            idler_hole();
+        translate([-filament_x_loc, motor_plate_size[1]/2, filament_z_loc])
+            filament_hole();
+        translate([-motor_screw_xy[0], -motor_screw_xy[1], motor_plate_size[2]/2])
+            idler_hinge_hole();
+        
+        // hole for tensioner springs
+        translate([idler_spring_nut_x_offset,motor_plate_size[1]/2+idler_spring_y_offset,idler_spring_z_center])
+            idler_spring_hole();
+        // motor screw holes (x3)
+        motor_screw_holes();
+        
+        //translate([-filament_x_loc, groove_mount_hole_y_offset, filament_z_loc])
+            //groove_mount_hole();
+        //translate([-filament_x_loc, groove_mount_hole_y_offset+hotend_mount_thickness/2, 0])
+            //groove_mount_screw_holes();
+    }
+}
+
 idler_flange_offset = motor_plate_size[2]/2 - filament_z_loc;
 idler_hinge_y_loc = -motor_screw_xy[1];
 idler_hinge_x_loc = -idler_flange_offset;
@@ -282,7 +325,7 @@ module idler_body() {
     //filament_idler_screw_head_diameter
     //motor_z_offset-0.2
     
-    
+    echo("idler bearing screw length: ", idler_support_size_x);
     
     body_size_x = filament_z_loc*2;
     body_size_y = motor_plate_size[1]/2 - (idler_outer_dia/2);
@@ -304,7 +347,7 @@ module idler_body() {
     }
     //idler spring support
     translate([0,body_y_offset,0]) 
-        cube_fillet([body_size_x,body_size_y,body_size_z] ,vertical=[0,0,(body_size_x-idler_support_size_x)/2,(body_size_x-idler_support_size_x)/2], center=[true,false,false]);
+        cube_fillet([body_size_x,body_size_y,body_size_z] ,vertical=[0,0,(body_size_x-idler_support_size_x)/2,(body_size_x-idler_support_size_x)/2], top=[body_size_z/2-0.5,0,0,0], center=[true,false,false]);
     
     //idler bearing support
     hull() {
@@ -313,6 +356,9 @@ module idler_body() {
                 cylinder_poly(r=idler_outer_dia/2-1, h=idler_support_size_x, center=true);
         _cube([idler_support_size_x,idler_outer_dia+0.002,body_size_z],center=[true,true,false]);
     }
+    //idler finger flange thing
+    translate([0,motor_plate_size[1]/2-0.01,0])
+    cube_fillet([body_size_x,6.01,body_size_z/2], vertical=[6,6,0,0], top=[body_size_z/2-0.5,0,0,0], center=[true, false, false]);
 }
 
 module extruder_idler() {
@@ -374,7 +420,7 @@ module groove_mount_body() {
         _cube([groove_body_x_size, groove_body_y_size+0.01, groove_body_z_size], center=[true, false, false]);
     // support bracket
     translate([groove_body_x_size/2, -groove_body_y_size, 0])
-        _cube([motor_plate_size[0]/2-(groove_body_x_size/2-filament_x_loc)+carriage_motor_gap+0.01, 3, groove_body_z_size], center=[false, false, false]);
+        _cube([motor_plate_size[0]/2-(groove_body_x_size/2-filament_x_loc)+carriage_motor_gap+0.01, 4, groove_body_z_size], center=[false, false, false]);
     translate([0, -groove_body_offset_y, 0])
     _cube([groove_body_x_size, groove_body_offset_y+0.01, motor_plate_size[2]], center=[true, false, false]);
 }
@@ -400,7 +446,7 @@ module groove_mount_clamp() {
         translate([0,0,filament_z_loc])
             groove_mount_hole();
         
-        translate([0,groove_body_y_size/2-0.5,0])
+        translate([0,hotend_mount_thickness/2,0])
             groove_mount_clamp_screw_holes();
     }
 }
@@ -417,13 +463,24 @@ module groove_mount_clamp_screw_holes() {
 }
 
 module groove_mount_hole() {
+    //e3d_collet_array=[8, 2];
+    //e3d_ptfe_dia=hole_fit( dia=4, fn=16);
     mybevel=0.3;
     small_hole_fn=poly_sides((hotend_mount_array[1][0]/2+hotend_mount_tolerance)*2);
     // filament hole
     rotate([-90,0,0])
-    rotate([0,0, 180/16])
-        translate([0,0,-0.01])
-            cylinder(d=hole_fit(filament_dia,16), h=groove_body_y_size+0.02, center=false, $fn=16);
+        translate([0,0,hotend_mount_thickness-0.01])
+            if(hotend_use_e3d) {
+                rotate([0,0,180/16])
+                cylinder(d=e3d_ptfe_dia+0.1, h=e3d_ptfe_length+0.02, center=false, $fn=16);
+                rotate([0,0,180/16])
+                cylinder(d=hole_fit(e3d_collet_array[0],16), h=e3d_collet_array[1]+0.02, center=false, $fn=16);
+                translate([0,-(hotend_mount_array[0][0]+hotend_mount_tolerance*2),0])
+                    _cube([e3d_collet_array[0], hotend_mount_array[0][0]+hotend_mount_tolerance*2, e3d_collet_array[1]+0.02], center=[true, false, false]);
+            } else {
+                rotate([0,0,180/16])
+                cylinder(d=hole_fit(filament_dia,16), h=groove_body_y_size+0.02, center=false, $fn=16);
+            }
     // groove mount
     rotate([-90,0,0])
         translate([0,0,-0.1]) {
@@ -535,7 +592,7 @@ module filament_hole() {
     rotate([90,0,0])
         rotate([0,0, 180/16])
             translate([0,0,-0.01])
-            cylinder(d=hole_fit(filament_dia,16), h=motor_plate_size[1]+0.02, center=false, $fn=16);
+            cylinder(d=hole_fit(filament_dia,16), h=motor_plate_size[1]+groove_body_offset_y+0.02, center=false, $fn=16);
 }
 
 module hubb_idler_shadow() {
@@ -585,12 +642,32 @@ module carriage_mount_holes() {
     }
 }
 
-hubb_idler_shadow();
-extruder();
-translate([-motor_screw_xy[0]-idler_hinge_radius,0,filament_z_loc])
-    rotate([0,90,0])
-        extruder_idler();
+// this is to show the complete assembly
+module extruder_model() {
+    hubb_idler_shadow();
+    extruder();
 
-translate([-filament_x_loc, groove_mount_hole_y_offset, filament_z_loc*2])
-rotate([180,0,180])
-    groove_mount_clamp();
+    translate([-motor_screw_xy[0]-idler_hinge_radius,0,filament_z_loc])
+        rotate([0,90,0])
+            extruder_idler();
+
+    translate([-filament_x_loc, groove_mount_hole_y_offset, filament_z_loc*2])
+        rotate([180,0,180])
+            groove_mount_clamp();
+
+    translate([-filament_x_loc,groove_mount_hole_y_offset+hotend_mount_thickness,filament_z_loc])
+        rotate([0,0,180])
+            %import("E3D_v6_1p75.STL");
+}
+
+// printable version
+module extruder_print() {
+    extruder();
+    translate([motor_plate_size[0]+5,-10,0])
+    !extruder_idler();
+    translate([0,-motor_plate_size[0]-hotend_mount_thickness,0])
+    print_groove_mount_clamp();
+}
+
+extruder_print();
+//bare_extruder();

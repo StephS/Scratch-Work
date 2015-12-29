@@ -50,7 +50,6 @@ function poly_sides_helper(fn=0, d) = ((d==undef) ? 0 : ((fn>0) ? fn : poly_side
 // Based on nophead research
 module polyhole(d, d1, d2, h, center=false, fn=0) {
     n = max(poly_sides_helper(fn, d), poly_sides_helper(fn, d1), poly_sides_helper(fn, d2));
-    echo(n);
     cylinder(h = h, d = d, d1 = d1, d2 = d2, $fn = n, center=center);
 }
 
