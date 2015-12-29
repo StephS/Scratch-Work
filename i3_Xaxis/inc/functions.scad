@@ -86,14 +86,15 @@ module trapezoid(cube=[10, 10, 10], x1=0, x2=0, y1=0, y2=0, center=false) {
 
 module cube_fillet(size, radius=-1, vertical=[3,3,3,3], top=[0,0,0,0], bottom=[0,0,0,0], center=false, $fn=0, vertical_fn=[0,0,0,0], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]){
     //
+    mycenter=(len(center)==undef) ? [center, center, center] : center;
+    mysize=(len(size)==undef) ? [size, size, size] : size;
+    //echo(mycenter);	
+    
     render(convexity = 2)
     if (use_fillets) {
-        if (center) {
-            cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
-        } else {
-            translate([size[0]/2, size[1]/2, size[2]/2])
-                cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
-        }
+        translate([(mycenter[0]) ? 0 : mysize[0]/2, (mycenter[1]) ? 0 : mysize[1]/2, (mycenter[2]) ? 0 : mysize[2]/2])
+    		cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
+    		//echo(size);
     } else {
         cube(size, center);
     }

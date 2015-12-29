@@ -61,6 +61,9 @@ washer_M8 =        [ 8.4,   17, 1.6, washer_tolerance_diameter, washer_tolerance
 washer_M8_double = [ 8.4,   17, 3.2, washer_tolerance_diameter, washer_tolerance_thickness*2, "(Generic) Metric M8 Washer (Doubled)"];
 washer_M10 =       [10.5,   21,   2, washer_tolerance_diameter, washer_tolerance_thickness, "(Generic) Metric M10 Washer"];
 
+// custom printed washer
+washer_M4_printed_0p5 =        [ 4.5,    5.5, 0.5, washer_tolerance_diameter, washer_tolerance_thickness, "(Generic) Metric M4 Washer"];
+
 // Metric Fender washers
 washer_fender_M2p5 = [ 2.7,    8, 0.8, washer_tolerance_diameter, washer_tolerance_thickness, "(Generic) Metric M2.5 Fender Washer"];
 washer_fender_M3 =   [ 3.2,    9, 0.8, washer_tolerance_diameter, washer_tolerance_thickness, "(Generic) Metric M3 Fender Washer"];
