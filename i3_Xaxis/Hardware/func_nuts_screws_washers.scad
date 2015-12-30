@@ -104,7 +104,7 @@ module screw_obj_hole(screw_object){
         render(convexity = 6)
             translate([0, 0, head_drop+head_height])
                 if (hole_support) {
-                    cylinder_slot(h=layer_height+0.002, r=head_bottom_dia/2+0.001, length=slot_length, fn=head_fn);
+                    cylinder_slot(h=layer_height*2+0.002, r=head_bottom_dia/2+0.001, length=slot_length, fn=head_fn);
                 }
     }
 }
