@@ -13,7 +13,7 @@ include <Hardware/func_motors.scad>;
 //[[top_dia, top_thickness], [bottom_dia, bottom_thickness]]
 e3d_mount_array=[[16, 3.7], [12,6]];
 //specifically for the e3d v6
-e3d_collet_array=[8, 2.6];
+e3d_collet_array=[8.5, 2.75];
 // array starts from top (entrance) to bottom, with the thickness of the tip, groove, and bottom. Add these together for the total cutout height.
 e3d_hotend_height=62;
 
@@ -21,7 +21,7 @@ e3d_hotend_height=62;
 //[[top_dia, top_thickness], [bottom_dia, bottom_thickness]]
 jhead_mount_array=[[15.9,4.76], [12,4.64]];
 
-hotend_mount_tolerance=0.1;
+hotend_mount_tolerance=0.05;
 hotend_mount_array=e3d_mount_array;
 hotend_use_e3d=true;
 
@@ -571,7 +571,7 @@ module groove_mount_clamp_screw_holes() {
 module groove_mount_hole() {
     //e3d_collet_array=[8, 2];
     //e3d_ptfe_dia=hole_fit( dia=4, fn=16);
-    mybevel=0.3;
+    mybevel=0.4;
     small_hole_fn=poly_sides((hotend_mount_array[1][0]/2+hotend_mount_tolerance)*2);
     // filament hole
     rotate([-90,0,0])
@@ -589,20 +589,20 @@ module groove_mount_hole() {
             }
     // groove mount
     rotate([-90,0,0])
-        translate([0,0,0]) {
-            translate([0,0,hotend_mount_array[1][1]-0.1]) {
-                cylinder_poly(r=hotend_mount_array[0][0]/2+hotend_mount_tolerance, h=hotend_mount_array[0][1]+0.1);
+        translate([0,0,-0.001]) {
+            translate([0,0,hotend_mount_array[1][1]-0.05]) {
+                cylinder_poly(r=hotend_mount_array[0][0]/2+hotend_mount_tolerance, h=hotend_mount_array[0][1]+0.05+0.001);
                 translate([0,-(hotend_mount_array[0][0]+hotend_mount_tolerance*2),0])
-                    _cube([hotend_mount_array[0][0]+hotend_mount_tolerance*2, hotend_mount_array[0][0]+hotend_mount_tolerance*2, hotend_mount_array[0][1]+0.1], center=[true, false, false]);
+                    _cube([hotend_mount_array[0][0]+hotend_mount_tolerance*2, hotend_mount_array[0][0]+hotend_mount_tolerance*2, hotend_mount_array[0][1]+0.05+0.001], center=[true, false, false]);
             }
             // for rounding the corners for an easier fit
             cylinder_poly(r1=hotend_mount_array[1][0]/2+hotend_mount_tolerance+mybevel, r2=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=mybevel*2, fn=small_hole_fn);
             translate([0,0,hotend_mount_array[1][1]-mybevel*2])
             cylinder_poly(r2=hotend_mount_array[1][0]/2+hotend_mount_tolerance+mybevel, r1=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=mybevel*2, fn=small_hole_fn);
             // actual cut
-            cylinder_poly(r=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=hotend_mount_array[1][1], fn=small_hole_fn);
+            cylinder_poly(r=hotend_mount_array[1][0]/2+hotend_mount_tolerance, h=hotend_mount_array[1][1]+0.02, fn=small_hole_fn);
             translate([0,-(hotend_mount_array[1][0]+hotend_mount_tolerance*2),0])
-                    _cube([hotend_mount_array[1][0]+hotend_mount_tolerance*2, hotend_mount_array[1][0]+hotend_mount_tolerance*2, hotend_mount_array[1][1]+0.2], center=[true, false, false]);
+                    _cube([hotend_mount_array[1][0]+hotend_mount_tolerance*2, hotend_mount_array[1][0]+hotend_mount_tolerance*2, hotend_mount_array[1][1]+0.02], center=[true, false, false]);
         }
 }
 
@@ -777,6 +777,6 @@ module extruder_print() {
     fan_flange_support();
 }
 //extruder_idler();
-extruder_model();
-//extruder_print();
+//extruder_model();
+extruder_print();
 //bare_extruder();
