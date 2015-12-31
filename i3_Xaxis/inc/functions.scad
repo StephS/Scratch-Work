@@ -26,6 +26,17 @@ module chamfer(x=10,y=10,z=10) {
        );
 }
 
+// it's possible to create all objects centered, then translate as necessary, but if we're not careful then this can cause issues.
+// determine the type of center veriable given
+// if it's single like center=true/false, then assign the value to the entire array
+function center_test(center) = (len(center)==undef) ? [center, center, center] : center;
+// specifically for cylinders and spheres, to duplicate the normal usage
+function center_test_cylinder(center) = (len(center)==undef) ? [true, true, center] : center;
+
+// set the translate for center operations.
+// this should be applied only to centered objects
+function center_translate(size_array, center_array) = [(center_array[0]) ? 0 : size_array[0]/2, (center_array[1]) ? 0 : size_array[1]/2, (center_array[2]) ? 0 : size_array[2]/2];
+
 function calc_z_angle(rotation) = (acos(cos(rotation[1])*cos(rotation[0])));
 
 function sagitta_arc(r, angle) = (r* (1 - cos(angle/2) ));
@@ -88,13 +99,13 @@ module trapezoid(cube=[10, 10, 10], x1=0, x2=0, y1=0, y2=0, center=false) {
 
 module cube_fillet(size, radius=-1, vertical=[3,3,3,3], top=[0,0,0,0], bottom=[0,0,0,0], center=false, $fn=0, vertical_fn=[0,0,0,0], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]){
     //
-    mycenter=(len(center)==undef) ? [center, center, center] : center;
+    mycenter=center_test(center);
     mysize=(len(size)==undef) ? [size, size, size] : size;
     //echo(mycenter);	
     
     render(convexity = 2)
     if (use_fillets) {
-        translate([(mycenter[0]) ? 0 : mysize[0]/2, (mycenter[1]) ? 0 : mysize[1]/2, (mycenter[2]) ? 0 : mysize[2]/2])
+        translate(center_translate(mysize, mycenter))
     		cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
     		//echo(size);
     } else {
@@ -102,9 +113,114 @@ module cube_fillet(size, radius=-1, vertical=[3,3,3,3], top=[0,0,0,0], bottom=[0
     }
 }
 
-module _cube(size, center) {
-    mycenter=(len(center)==undef) ? [center, center, center] : center;
+module _cube(size, center=false) {
+    mycenter=center_test(center);
     mysize=(len(size)==undef) ? [size, size, size] : size;
-    translate([(mycenter[0]) ? -mysize[0]/2 : 0, (mycenter[1]) ? -mysize[1]/2 : 0, (mycenter[2]) ? -mysize[2]/2 : 0])
-        cube(size=mysize, center=false);
+    translate(center_translate(mysize, mycenter))
+        cube(size=mysize, center=true);
+}
+
+// the below functions are for duplicating the standard functionality of
+
+function find_d1(r, r1, r2, d, d1, d2) = (d1!=undef) ?
+                                                        d1 
+                                                    :
+                                                        (d2!=undef) ?
+                                                            (r1!=undef) ?
+                                                                r1*2
+                                                            :
+                                                                (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2
+                                                        :
+                                                            (r1!=undef) ?
+                                                                r1*2 
+                                                            :
+                                                                 (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2;
+                                                                    
+function find_d2(r, r1, r2, d, d1, d2) = (d2!=undef) ?
+                                                        d2 
+                                                    :
+                                                        (d1!=undef) ?
+                                                            (r2!=undef) ?
+                                                                r2*2
+                                                            :
+                                                                (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2
+                                                        :
+                                                            (r2!=undef) ?
+                                                                r2*2 
+                                                            :
+                                                                (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2;
+
+// if d is given and d1, then d2=d
+// if r is given and d2, d1=r*2
+// if d1 is given, and d2 or d or r2 or r is not, then r1=1
+// if r2 is defined, check for r1.
+// if r1 is defined, check for r2.
+// cylinder order of precedence
+// d2, d1, r2, r1, d, r
+// set length > 0 to define a slot
+module _cylinder(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $fn=0) {
+    
+    mycenter=center_test_cylinder(center);
+    my_d1=find_d1(r, r1, r2, d, d1, d2);
+    my_d2=find_d2(r, r1, r2, d, d1, d2);
+    echo("my_d1", my_d1);
+    echo("my_d2", my_d2);
+    larger_d = max(my_d1, my_d2);
+    
+    // utilize polysides for all cylinders
+    n = ($fn > 0) ? $fn : poly_sides(larger_d);
+
+    mysize=[larger_d, larger_d, h];
+
+    translate(center_translate(mysize, mycenter)) 
+        hull() {
+            rotate([0,0, 180/n])
+            cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+            if (length > 0) {
+                translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                    intersection() {
+                        _cube([length, larger_d, h], center=[false,true,true]);
+                        union() {
+                            rotate([0,0,45])
+                            cylinder(h=h, d1=my_d1/cos(45), d2=my_d2/cos(45), center=true, $fn=4);
+                            translate([length, 0, 0]) rotate([0,0,45]) cylinder(h=h, d1=my_d1/cos(45), d2=my_d2/cos(45), center=true, $fn=4);
+                        }
+                }
+            }
+        }
+}
+
+// this function returns the number of sides on a standard cylinder
+function _cylinder_fn(r, r1, r2, d, d1, d2, $fn=0) = ($fn > 0) ? $fn : poly_sides(max(find_d1(r, r1, r2, d, d1, d2), find_d2(r, r1, r2, d, d1, d2)));
+
+module _sphere(r, center=[true,true,false], d) {
+    mycenter=center_test_cylinder(center);
+    my_d=(d!=undef) ? d : r*2;
+    mysize=[my_d, my_d, my_d];
+    translate(center_translate(mysize, mycenter))
+        cylinder(h=h, d1=my_d1, d2=my_d2, center=true);
 }
