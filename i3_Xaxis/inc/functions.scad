@@ -187,27 +187,19 @@ module _cylinder(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $f
     
     // utilize polysides for all cylinders
     n = ($fn > 0) ? $fn : poly_sides(larger_d);
-
     mysize=[larger_d, larger_d, h];
 
     translate(center_translate(mysize, mycenter))
         render()
         hull() {
-            rotate([0,0, 180/n])
-            cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
-            if (length > 0) {
-                // second side of the elongated cylinder
-                translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                
+                    rotate([0,0, 180/n])
+                        cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                    if (length > 0) {
+                        // second side of the elongated cylinder
+                        translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                    }
                     // this is kind of a hack that makes it easy to make elongated holes and cones.
-                    intersection() {
-                        _cube([length, larger_d, h], center=[false,true,true]);
-                        union() {
-                            rotate([0,0,45])
-                            cylinder(h=h, d1=my_d1/cos(45), d2=my_d2/cos(45), center=true, $fn=4);
-                            translate([length, 0, 0]) rotate([0,0,45]) cylinder(h=h, d1=my_d1/cos(45), d2=my_d2/cos(45), center=true, $fn=4);
-                        }
-                }
-            }
         }
 }
 
@@ -239,15 +231,6 @@ module _cylinder_outer(h, r, r1, r2, center=[true,true,false], d, d1, d2, length
             if (length > 0) {
                 // second side of the elongated cylinder
                 translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1_outer, d2=my_d2_outer, center=true, $fn=n);
-                    // this is kind of a hack that makes it easy to make elongated holes and cones.
-                    intersection() {
-                        _cube([length, larger_d_outer, h], center=[false,true,true]);
-                        union() {
-                            rotate([0,0,45])
-                            cylinder(h=h, d1=my_d1_outer/cos(45), d2=my_d2_outer/cos(45), center=true, $fn=4);
-                            translate([length, 0, 0]) rotate([0,0,45]) cylinder(h=h, d1=my_d1_outer/cos(45), d2=my_d2_outer/cos(45), center=true, $fn=4);
-                        }
-                }
             }
         }
 }
