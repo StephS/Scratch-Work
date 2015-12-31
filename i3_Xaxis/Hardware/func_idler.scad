@@ -35,7 +35,7 @@ module idler_obj_hole(idler_object, width=-1, center = false) {
     //echo("idler dia", _idler_obj_outer_dia(idler_obj_bearing(idler_object), idler_obj_washer(idler_object), idler_obj_belt(idler_object)) + idler_obj_diameter_tolerance(idler_object));
     outer_dia = idler_obj_outer_dia(idler_hole_object);
     idler_width = (width > 0) ? width : idler_obj_width(idler_hole_object);
-    cylinder_slot(h=idler_width, r=outer_dia/2, fn=idler_obj_hole_fn(idler_object), center=center);
+    _cylinder(h=idler_width, r=outer_dia/2, fn=idler_obj_hole_fn(idler_object), center=center);
 }
 
 module bearing(bearing, center=false){
@@ -51,20 +51,20 @@ module bearing(bearing, center=false){
     
     translate([0,0, (center) ? 0 : center_offset]) {
         render() difference() {
-            cylinder(h = bearing_width, d=bearing_dia, center=true);
-            cylinder(h = bearing_width+1, d=bearing_inn_dia, center=true);
+            _cylinder(h = bearing_width, d=bearing_dia, center=true);
+            _cylinder(h = bearing_width+1, d=bearing_inn_dia, center=true);
         }
         if (bearing_flange_dia > 0) {
             translate ([0,0,-bearing_width/2 - bearing_flange_width/2])
                 render() difference() {
-                    cylinder(h = abs(bearing_flange_width), d = bearing_flange_dia, center=true);
-                    cylinder(h = abs(bearing_flange_width)+1, d = bearing_dia-2, center=true);
+                    _cylinder(h = abs(bearing_flange_width), d = bearing_flange_dia, center=true);
+                    _cylinder(h = abs(bearing_flange_width)+1, d = bearing_dia-2, center=true);
                 }
             if (bearing_double_flange)
                 translate ([0,0,bearing_width/2 + bearing_flange_width/2])
                 render() difference() {
-                    cylinder(h = abs(bearing_flange_width), d = bearing_flange_dia, center=true);
-                    cylinder(h = abs(bearing_flange_width)+1, d = bearing_dia-2, center=true);
+                    _cylinder(h = abs(bearing_flange_width), d = bearing_flange_dia, center=true);
+                    _cylinder(h = abs(bearing_flange_width)+1, d = bearing_dia-2, center=true);
                 }
         }
     }

@@ -1,13 +1,6 @@
-// PRUSA iteration3
-// Functions used in many files
-// GNU GPL v3
-// Josef Pr?ša <josefprusa@me.com>
-// Václav 'ax' H?la <axtheb@gmail.com>
-// Vlnofka <>
-// http://www.reprap.org/wiki/Prusa_Mendel
-// http://github.com/prusajr/PrusaMendel
+// Stephs
+// new primitives! new shapes!
 include <fillets.scad>
-//include <nuts_screws.scad>
 
 use_fillets=true;
 
@@ -48,8 +41,8 @@ function sagitta_radius(s, l) = (pow(s,2) + pow(l,2))/ (2*s);
 
 // This will size an outer diameter to fit inside dia with $fn sides
 // use this to set the diameter before passing to polyhole
-function hole_fit( dia=0, fn=0) = dia/cos(180/((fn>0) ? fn : 0.01));
-function hole_fit_poly( dia=0) = dia/cos(180/poly_sides(dia));
+function hole_fit( dia=0, fn=0) = (dia/2)/cos(180/((fn>0) ? fn : 0.01))*2;
+function hole_fit_poly( dia=0) = (dia/2)/cos(180/poly_sides(dia))*2;
 
 // This determines the number of sides of a hole that is printable
 // I added +1 because nobody wants to print a triangle. (plus it looks nicer, havn't tested printability yet.)
@@ -58,6 +51,8 @@ function poly_sides(d) = (ceil((max(round(2 * d),3)+1)/4)*4);
 
 function poly_sides_helper(fn=0, d) = ((d==undef) ? 0 : ((fn>0) ? fn : poly_sides(d)));
 
+// depreciated functions
+/*
 // Based on nophead research
 module polyhole(d, d1, d2, h, center=false, fn=0) {
     n = max(poly_sides_helper(fn, d), poly_sides_helper(fn, d1), poly_sides_helper(fn, d2));
@@ -84,6 +79,7 @@ module cylinder_slot(r=0, r1, r2, h, length=0, center=false, fn=0) {
 		}
 	}
 }
+*/
 
 module trapezoid(cube=[10, 10, 10], x1=0, x2=0, y1=0, y2=0, center=false) {
 	translate((center) ? [0,0,0] : [cube[0]/2, cube[1]/2, cube[2]/2] ) {
@@ -187,8 +183,6 @@ module _cylinder(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $f
     mycenter=center_test_cylinder(center);
     my_d1=find_d1(r, r1, r2, d, d1, d2);
     my_d2=find_d2(r, r1, r2, d, d1, d2);
-    echo("my_d1", my_d1);
-    echo("my_d2", my_d2);
     larger_d = max(my_d1, my_d2);
     
     // utilize polysides for all cylinders
@@ -196,12 +190,15 @@ module _cylinder(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $f
 
     mysize=[larger_d, larger_d, h];
 
-    translate(center_translate(mysize, mycenter)) 
+    translate(center_translate(mysize, mycenter))
+        render()
         hull() {
             rotate([0,0, 180/n])
             cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
             if (length > 0) {
+                // second side of the elongated cylinder
                 translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                    // this is kind of a hack that makes it easy to make elongated holes and cones.
                     intersection() {
                         _cube([length, larger_d, h], center=[false,true,true]);
                         union() {
@@ -214,9 +211,56 @@ module _cylinder(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $f
         }
 }
 
+// this makes a cylinder that fits outside/around the object of the diameter
+// this is nearly a duplicate of _cylinder, but because of bugs using $fn I cannot simply call _cylinder
+module _cylinder_outer(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $fn=0) {
+    mycenter=center_test_cylinder(center);
+    my_d1=find_d1(r, r1, r2, d, d1, d2);
+    my_d2=find_d2(r, r1, r2, d, d1, d2);
+    
+    larger_d = max(my_d1, my_d2);
+    
+    // utilize polysides for all cylinders
+    n = ($fn > 0) ? $fn : poly_sides(larger_d);
+    
+    // find the new diameter
+    my_d1_outer=(my_d1/2)/cos(180/n)*2;
+    my_d2_outer=(my_d2/2)/cos(180/n)*2;
+    
+    larger_d_outer=max(my_d1_outer, my_d2_outer);
+    
+    mysize=[larger_d_outer, larger_d_outer, h];
+
+    translate(center_translate(mysize, mycenter)) 
+        render()
+        hull() {
+            rotate([0,0, 180/n])
+            cylinder(h=h, d1=my_d1_outer, d2=my_d2_outer, center=true, $fn=n);
+            if (length > 0) {
+                // second side of the elongated cylinder
+                translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1_outer, d2=my_d2_outer, center=true, $fn=n);
+                    // this is kind of a hack that makes it easy to make elongated holes and cones.
+                    intersection() {
+                        _cube([length, larger_d_outer, h], center=[false,true,true]);
+                        union() {
+                            rotate([0,0,45])
+                            cylinder(h=h, d1=my_d1_outer/cos(45), d2=my_d2_outer/cos(45), center=true, $fn=4);
+                            translate([length, 0, 0]) rotate([0,0,45]) cylinder(h=h, d1=my_d1_outer/cos(45), d2=my_d2_outer/cos(45), center=true, $fn=4);
+                        }
+                }
+            }
+        }
+}
+
+// determine the diameter of a outer diameter cylinder
+function _cylinder_outer_dia(d, $fn=0) = (d/2)/cos(180/(($fn>0) ? $fn : poly_sides(d)))*2;
+
 // this function returns the number of sides on a standard cylinder
+// you can copy and paste what you put into a cylinder into here
 function _cylinder_fn(r, r1, r2, d, d1, d2, $fn=0) = ($fn > 0) ? $fn : poly_sides(max(find_d1(r, r1, r2, d, d1, d2), find_d2(r, r1, r2, d, d1, d2)));
 
+// haven't tested this yet. it should work, i think.
+// could easily make it slotted like the cylinder. not sure how useful that would be.
 module _sphere(r, center=[true,true,false], d) {
     mycenter=center_test_cylinder(center);
     my_d=(d!=undef) ? d : r*2;
