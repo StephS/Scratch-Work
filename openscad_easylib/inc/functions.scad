@@ -1,13 +1,6 @@
-// PRUSA iteration3
-// Functions used in many files
-// GNU GPL v3
-// Josef Pr?ša <josefprusa@me.com>
-// Václav 'ax' H?la <axtheb@gmail.com>
-// Vlnofka <>
-// http://www.reprap.org/wiki/Prusa_Mendel
-// http://github.com/prusajr/PrusaMendel
+// Stephs
+// new primitives! new shapes!
 include <fillets.scad>
-//include <nuts_screws.scad>
 
 use_fillets=true;
 
@@ -26,19 +19,50 @@ module chamfer(x=10,y=10,z=10) {
        );
 }
 
+// it's possible to create all objects centered, then translate as necessary, but if we're not careful then this can cause issues.
+// determine the type of center veriable given
+// if it's single like center=true/false, then assign the value to the entire array
+function center_test(center) = (len(center)==undef) ? [center, center, center] : center;
+// specifically for cylinders and spheres, to duplicate the normal usage
+function center_test_cylinder(center) = (len(center)==undef) ? [true, true, center] : center;
+
+// set the translate for center operations.
+// this should be applied only to centered objects
+function center_translate(size_array, center_array) = [(center_array[0]) ? 0 : size_array[0]/2, (center_array[1]) ? 0 : size_array[1]/2, (center_array[2]) ? 0 : size_array[2]/2];
+
 function calc_z_angle(rotation) = (acos(cos(rotation[1])*cos(rotation[0])));
 
 function sagitta_arc(r, angle) = (r* (1 - cos(angle/2) ));
 
 function sagitta(r, l) = r - sqrt(pow(r,2) - pow(l,2));
 
-// calculate the radius of a circle to meet the given saggita. 
-// s is the depth from the center of the arc to it's base it can be thought of as the depth of the arc.
-// l is the 1/2 the width of the base of the arc, or the arm of the arc
-// by defining these 2 points it will return the required radius of the arc to be tangent with these (3) points.
-// It's 3 points as l is computed in both sides of the arc, like an isosceles triangle.
 function sagitta_radius(s, l) = (pow(s,2) + pow(l,2))/ (2*s);
 //function sagitta_radius(s, l) = (hypotenuse / 2) / cos(90 - atan(short side / long side));
+
+// This will size an outer diameter to fit inside dia with $fn sides
+// use this to set the diameter before passing to polyhole
+function hole_fit( dia=0, fn=0) = (dia/2)/cos(180/((fn>0) ? fn : 0.01))*2;
+function hole_fit_poly( dia=0) = (dia/2)/cos(180/poly_sides(dia))*2;
+
+// This determines the number of sides of a hole that is printable
+// I added +1 because nobody wants to print a triangle. (plus it looks nicer, havn't tested printability yet.)
+// made it return an even number of sides. it works better for operations like hull
+function poly_sides(d) = (ceil((max(round(2 * d),3)+1)/4)*4);
+
+function poly_sides_helper(fn=0, d) = ((d==undef) ? 0 : ((fn>0) ? fn : poly_sides(d)));
+
+// depreciated functions
+/*
+// Based on nophead research
+module polyhole(d, d1, d2, h, center=false, fn=0) {
+    n = max(poly_sides_helper(fn, d), poly_sides_helper(fn, d1), poly_sides_helper(fn, d2));
+    cylinder(h = h, d = d, d1 = d1, d2 = d2, $fn = n, center=center);
+}
+
+// make it interchangeable between this and cylinder
+module cylinder_poly(r, r1, r2, h, center=false, fn=0){
+    polyhole(d=r*2, d1=r1*2, d2=r2*2, h=h, center=center, fn = fn);
+}
 
 //
 module cylinder_slot(r=0, r1, r2, h, length=0, center=false, fn=0) {
@@ -55,6 +79,7 @@ module cylinder_slot(r=0, r1, r2, h, length=0, center=false, fn=0) {
 		}
 	}
 }
+*/
 
 module trapezoid(cube=[10, 10, 10], x1=0, x2=0, y1=0, y2=0, center=false) {
 	translate((center) ? [0,0,0] : [cube[0]/2, cube[1]/2, cube[2]/2] ) {
@@ -70,15 +95,159 @@ module trapezoid(cube=[10, 10, 10], x1=0, x2=0, y1=0, y2=0, center=false) {
 
 module cube_fillet(size, radius=-1, vertical=[3,3,3,3], top=[0,0,0,0], bottom=[0,0,0,0], center=false, $fn=0, vertical_fn=[0,0,0,0], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]){
     //
+    mycenter=center_test(center);
+    mysize=(len(size)==undef) ? [size, size, size] : size;
+    //echo(mycenter);	
+    
     render(convexity = 2)
     if (use_fillets) {
-        if (center) {
-            cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
-        } else {
-            translate([size[0]/2, size[1]/2, size[2]/2])
-                cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
-        }
+        translate(center_translate(mysize, mycenter))
+    		cube_fillet_inside(size, radius, vertical, top, bottom, $fn, vertical_fn, top_fn, bottom_fn);
+    		//echo(size);
     } else {
         cube(size, center);
     }
+}
+
+module _cube(size, center=false) {
+    mycenter=center_test(center);
+    mysize=(len(size)==undef) ? [size, size, size] : size;
+    translate(center_translate(mysize, mycenter))
+        cube(size=mysize, center=true);
+}
+
+// the below functions are for duplicating the standard functionality of
+
+function find_d1(r, r1, r2, d, d1, d2) = (d1!=undef) ?
+                                                        d1 
+                                                    :
+                                                        (d2!=undef) ?
+                                                            (r1!=undef) ?
+                                                                r1*2
+                                                            :
+                                                                (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2
+                                                        :
+                                                            (r1!=undef) ?
+                                                                r1*2 
+                                                            :
+                                                                 (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2;
+                                                                    
+function find_d2(r, r1, r2, d, d1, d2) = (d2!=undef) ?
+                                                        d2 
+                                                    :
+                                                        (d1!=undef) ?
+                                                            (r2!=undef) ?
+                                                                r2*2
+                                                            :
+                                                                (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2
+                                                        :
+                                                            (r2!=undef) ?
+                                                                r2*2 
+                                                            :
+                                                                (d!=undef) ?
+                                                                    d
+                                                                :
+                                                                    (r!=undef) ?
+                                                                        r*2
+                                                                    :
+                                                                        2;
+
+// if d is given and d1, then d2=d
+// if r is given and d2, d1=r*2
+// if d1 is given, and d2 or d or r2 or r is not, then r1=1
+// if r2 is defined, check for r1.
+// if r1 is defined, check for r2.
+// cylinder order of precedence
+// d2, d1, r2, r1, d, r
+// set length > 0 to define a slot
+module _cylinder(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $fn=0) {
+    
+    mycenter=center_test_cylinder(center);
+    my_d1=find_d1(r, r1, r2, d, d1, d2);
+    my_d2=find_d2(r, r1, r2, d, d1, d2);
+    larger_d = max(my_d1, my_d2);
+    
+    // utilize polysides for all cylinders
+    n = ($fn > 0) ? $fn : poly_sides(larger_d);
+    mysize=[larger_d, larger_d, h];
+
+    translate(center_translate(mysize, mycenter))
+        render()
+        hull() {
+                
+                    rotate([0,0, 180/n])
+                        cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                    if (length > 0) {
+                        // second side of the elongated cylinder
+                        translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1, d2=my_d2, center=true, $fn=n);
+                    }
+                    // this is kind of a hack that makes it easy to make elongated holes and cones.
+        }
+}
+
+// this makes a cylinder that fits outside/around the object of the diameter
+// this is nearly a duplicate of _cylinder, but because of bugs using $fn I cannot simply call _cylinder
+module _cylinder_outer(h, r, r1, r2, center=[true,true,false], d, d1, d2, length=0, $fn=0) {
+    mycenter=center_test_cylinder(center);
+    my_d1=find_d1(r, r1, r2, d, d1, d2);
+    my_d2=find_d2(r, r1, r2, d, d1, d2);
+    
+    larger_d = max(my_d1, my_d2);
+    
+    // utilize polysides for all cylinders
+    n = ($fn > 0) ? $fn : poly_sides(larger_d);
+    
+    // find the new diameter
+    my_d1_outer=(my_d1/2)/cos(180/n)*2;
+    my_d2_outer=(my_d2/2)/cos(180/n)*2;
+    
+    larger_d_outer=max(my_d1_outer, my_d2_outer);
+    
+    mysize=[larger_d_outer, larger_d_outer, h];
+
+    translate(center_translate(mysize, mycenter)) 
+        render()
+        hull() {
+            rotate([0,0, 180/n])
+            cylinder(h=h, d1=my_d1_outer, d2=my_d2_outer, center=true, $fn=n);
+            if (length > 0) {
+                // second side of the elongated cylinder
+                translate([length, 0, 0]) rotate([0,0, 180/n-180]) cylinder(h=h, d1=my_d1_outer, d2=my_d2_outer, center=true, $fn=n);
+            }
+        }
+}
+
+// determine the diameter of a outer diameter cylinder
+function _cylinder_outer_dia(d, $fn=0) = (d/2)/cos(180/(($fn>0) ? $fn : poly_sides(d)))*2;
+
+// this function returns the number of sides on a standard cylinder
+// you can copy and paste what you put into a cylinder into here
+function _cylinder_fn(r, r1, r2, d, d1, d2, $fn=0) = ($fn > 0) ? $fn : poly_sides(max(find_d1(r, r1, r2, d, d1, d2), find_d2(r, r1, r2, d, d1, d2)));
+
+// haven't tested this yet. it should work, i think.
+// could easily make it slotted like the cylinder. not sure how useful that would be.
+module _sphere(r, center=[true,true,false], d) {
+    mycenter=center_test_cylinder(center);
+    my_d=(d!=undef) ? d : r*2;
+    mysize=[my_d, my_d, my_d];
+    translate(center_translate(mysize, mycenter))
+        cylinder(h=h, d1=my_d1, d2=my_d2, center=true);
 }

@@ -86,7 +86,7 @@ module cooling_fan() {
             translate([-41/2,tab_diameter/2,fan_screw_length])
             //#base_cutout(h=0.1);
                     translate([41/2,41/2,0])
-        cylinder_poly(r=fan_duct_dia/2, h=0.1);
+        _cylinder(r=fan_duct_dia/2, h=0.1);
             translate([-(41-duct_wall_width*2)/2,tab_diameter/2+duct_wall_width,tab_diameter-0.1-sin(45)*duct_wall_width])
                 cube_fillet(size=[41-duct_wall_width*2,41-duct_wall_width*2,0.1], radius=-1, vertical=[4,4,4,4], top=[0,0,0,0], bottom=[0,0,0,0], center=false, $fn=0, vertical_fn=[12,12,12,12], top_fn=[0,0,0,0], bottom_fn=[0,0,0,0]);
         }
@@ -172,15 +172,15 @@ module fan_mount_nuts() {
 module base_cutout(h=fan_screw_length) {
     difference() {
         translate([41/2,41/2,0])
-        cylinder_poly(r=fan_duct_dia/2, h=h);
+        _cylinder(r=fan_duct_dia/2, h=h);
         translate([4.5,4.5,0])
-        cylinder_poly(r=5, h=tab_diameter);
+        _cylinder(r=5, h=tab_diameter);
         translate([4.5,4.5+fan_hole_separation,0])
-        cylinder_poly(r=5, h=tab_diameter);
+        _cylinder(r=5, h=tab_diameter);
         translate([4.5+fan_hole_separation,4.5,0])
-        cylinder_poly(r=5, h=tab_diameter);
+        _cylinder(r=5, h=tab_diameter);
         translate([4.5+fan_hole_separation,4.5+fan_hole_separation,0])
-        cylinder_poly(r=5, h=tab_diameter);
+        _cylinder(r=5, h=tab_diameter);
     }
 }
 
@@ -193,6 +193,8 @@ module mount_tabs() {
             cylinder(d=tab_diameter, h=thickness, center=true, $fn=32);
             translate([0,(tab_diameter/2+0.1)/2,0])
             cube([tab_diameter,tab_diameter/2+0.1, thickness], center=true);
+            translate([-(tab_diameter/2+0.1)/2,0,0])
+            cube([tab_diameter/2+0.1, tab_diameter, thickness], center=true);
         }
         cylinder(d=tab_diameter*2, h=tab_width, center=true, $fn=32);
         translate([0,0,-18/2])

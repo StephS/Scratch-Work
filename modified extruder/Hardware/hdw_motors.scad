@@ -25,4 +25,4 @@ function motor_name(type) = type[6];
 //     name is human readable name [8]
 
 //                  [ [ x,  y,  z], flange_diameter, flange_height, shaft_diameter, shaft_height,      [[hole1],       [hole2],       [hole3],        [hole4]],                    "name"]
-motor_nema17 = [ [42, 42, 42],              22,             2,              5,           14, [[15.5, 15.5], [-15.5, 15.5], [15.5, -15.5], [-15.5, -15.5]], "Nema 17 motor 42mm high"];
+motor_nema17 = [ [42, 42, 42],              22,             2,              5,           22, [[15.5, 15.5], [-15.5, 15.5], [15.5, -15.5], [-15.5, -15.5]], "Nema 17 motor 42mm high"];

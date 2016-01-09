@@ -30,7 +30,7 @@ hotend_mount_thickness=hotend_mount_array[0][1]+hotend_mount_array[1][1];
 
 // Main dimensions
 // offset determined by the motor flange height (2mm + clearance)
-motor_flange_height=3;
+motor_flange_height=2.5;
 motor_z_offset=motor_flange_height+1;
 
 // height of the hotend clamp
@@ -134,7 +134,7 @@ idler_hinge_screw_obj=screw_obj(screw=screw_M3_socket_head, height=motor_plate_s
 idler_hinge_radius=motor_screw_to_edge-1;
 idler_hinge_hole_radius=idler_hinge_radius+1;
 // thickness of the idler hinge support (on both sides of the flange)
-idler_hinge_support_thickness=5;
+idler_hinge_support_thickness=4.5;
 idler_hinge_tab_thickness=motor_plate_size[2]-idler_hinge_support_thickness*2;
 
 fan_screw=screw_obj(screw=screw_M3_socket_head, height=20);

@@ -166,6 +166,9 @@ screw_M6_socket_head =   [  METRIC_M6,  10,  10,   6, screw_tolerance_hole, scre
 screw_M8_socket_head =   [  METRIC_M8,  13,  13,   8, screw_tolerance_hole, screw_tolerance_head, false, "(Generic) Metric M8 Socket Head"];
 screw_M10_socket_head =  [ METRIC_M10,  16,  16,  10, screw_tolerance_hole, screw_tolerance_head, false, "(Generic) Metric M10 Socket Head"];
 
+// Low Profile head
+screw_M4_low_socket_head =   [  METRIC_M4,   7,   7,   2.8, screw_tolerance_hole, screw_tolerance_head, false, "(Generic) Metric M4 Low Profile Socket Head"];
+
 //************* Generic Metric Flat Head screws *************
 //                    [screw_dia, head_bottom_dia, head_top_dia, head_height, name]
 screw_M3_flat_head =  [ METRIC_M3,  3,  6.72,  1.83, screw_tolerance_hole, screw_tolerance_head, false, "(Generic) Metric M3 Flat Head"];

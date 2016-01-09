@@ -25,3 +25,8 @@ nut_tolerance_thickness = 0.2;
 // linear bearing tolerance
 lb_tolerance_diameter = 0.05;
 lb_tolerance_length = 0.2;
+
+// bearing tolerance
+bearing_tolerance_diameter = 0.05;
+bearing_tolerance_inner_diameter = 0.05;
+bearing_tolerance_width = 0.1;

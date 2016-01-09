@@ -13,25 +13,25 @@ function idler_obj_screw_obj(type) = type[1];
 function idler_obj_washer(type) = type[2];
 function idler_obj_belt(type) = type[3];
 function idler_obj_hole_fn(type) = type[4];
-function idler_obj_diameter_tolerance(type) = type[5];
-function idler_obj_name(type) = type[6];
+function idler_obj_name(type) = type[5];
 
-function idler_obj(bearing=bearing_608, screw_object=-1, washer=-1, belt=-1, hole_fn=-1, diameter_tolerance = 1, name=-1) =
+//idler_obj_bearing_width(type) = bearing_width(idler_obj_bearing(type));
+//hole_fit(dia=idler_obj_outer_dia(type) + idler_obj_diameter_tolerance(type), fn=idler_obj_hole_fn(type))
+
+function idler_obj(bearing=bearing_608, screw_object=-1, washer=-1, belt=-1, hole_fn=-1, name=-1) =
     [bearing,
     screw_object,
     washer,
     belt,
-    (hole_fn==-1) ? poly_sides(_idler_obj_outer_dia(bearing, washer, belt) + diameter_tolerance) : hole_fn,
-    diameter_tolerance,
+    (hole_fn==-1) ? poly_sides(_idler_obj_outer_dia(bearing, washer, belt) + bearing_tolerance_dia(bearing)) : hole_fn,
     (name==-1) ? ((bearing==-1) ? "No Name" : bearing_name(bearing)) : name];
 
 function idler_obj_tolerance(idler_object) =
-    [idler_obj_bearing(idler_object),
+    [v_bearing_hole(idler_obj_bearing(idler_object), idler_obj_hole_fn(idler_object)),
     screw_obj_tolerance(idler_obj_screw_obj(idler_object)),
     (idler_obj_washer(idler_object) != -1) ? v_washer_hole(idler_obj_washer(idler_object), idler_obj_hole_fn(idler_object)) : -1,
     idler_obj_belt(idler_object),
     idler_obj_hole_fn(idler_object),
-    idler_obj_diameter_tolerance(idler_object),
     idler_obj_name(idler_object)];
 
 // get the diameter of the bearing + belt (helper function for cleaner code)
