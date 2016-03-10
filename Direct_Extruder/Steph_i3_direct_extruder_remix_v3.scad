@@ -13,8 +13,7 @@ include <Hardware/func_motors.scad>;
 //[[top_dia, top_thickness], [bottom_dia, bottom_thickness]]
 e3d_mount_array=[[16, 3.7], [12,6]];
 //specifically for the e3d v6
-//e3d_collet_array=[8.5, 2.75];
-e3d_collet_array=[8.5, 2.5];
+e3d_collet_array=[8.5, 2.75];
 // array starts from top (entrance) to bottom, with the thickness of the tip, groove, and bottom. Add these together for the total cutout height.
 e3d_hotend_height=62;
 
@@ -26,7 +25,6 @@ hotend_mount_dia_tolerance=0.1;
 hotend_mount_height_tolerance=0.1;
 hotend_mount_array=e3d_mount_array;
 hotend_use_e3d=true;
-hotend_use_PTFE=false;
 
 hotend_mount_thickness=hotend_mount_array[0][1]+hotend_mount_array[1][1];
 
@@ -607,12 +605,11 @@ module groove_mount_hole() {
     rotate([-90,0,0])
         translate([0,0,hotend_mount_thickness-0.01])
             if(hotend_use_e3d) {
-                if(hotend_use_PTFE)
                 _cylinder_outer(d=e3d_ptfe_dia+0.1, h=e3d_ptfe_length+0.02, center=false, $fn=16);
                 rotate([0,0,-90])
                 _cylinder_outer(d=e3d_collet_array[0], h=e3d_collet_array[1]+0.02, center=false, length=hotend_mount_array[0][0]+hotend_mount_dia_tolerance*2, $fn=16);
             } else {
-                //_cylinder_outer(d=16, h=groove_body_y_size+0.02, center=false, $fn=16);
+                _cylinder_outer(d=16, h=groove_body_y_size+0.02, center=false, $fn=16);
             }
     // groove mount
     rotate([-90,0,0])
@@ -719,14 +716,8 @@ module idler_spring_hole() {
 module filament_hole() {
     rotate([90,0,0])
         rotate([0,0, 180/16])
-            translate([0,0,-0.01]) {
+            translate([0,0,-0.01])
             _cylinder(d=hole_fit(filament_dia,16), h=motor_plate_size[1]+groove_body_offset_y+0.02, center=false, $fn=16);
-                _cylinder(d2=hole_fit(filament_dia,16), d1=hole_fit(filament_dia,16)*2, h=hole_fit(filament_dia,16)/2, center=false, $fn=16);
-                translate([0,0,motor_plate_size[1]/2+2.77])
-                _cylinder(d2=hole_fit(filament_dia,16), d1=hole_fit(filament_dia,16)*3, h=hole_fit(filament_dia,16), center=false, $fn=16);
-                translate([0,0,motor_plate_size[1]+groove_body_offset_y+0.02-hole_fit(filament_dia,16)/3-((hotend_use_e3d) ? e3d_collet_array[1] : 0)])
-                _cylinder(d1=hole_fit(filament_dia,16), d2=hole_fit(filament_dia,16)+hole_fit(filament_dia,16)/3*2, h=hole_fit(filament_dia,16)/3, center=false, $fn=16);
-            }
 }
 
 module hubb_idler_shadow() {
@@ -809,6 +800,6 @@ module extruder_print() {
 
 //print_groove_mount_clamp();
 //extruder_idler();
-//extruder_model();
-extruder_print();
+extruder_model();
+//extruder_print();
 //bare_extruder();
